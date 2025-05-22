@@ -1,11 +1,14 @@
-from fastapi import FastAPI, File, UploadFile, Depends
+from typing import Optional
+
+from fastapi import FastAPI, File, UploadFile, Depends, Form
 from fastapi.responses import JSONResponse
 import shutil
 import os
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from database.database import init_db
+from models.models_enum import ModelEnum
 from models.panel_check import PanelCheck
+
 from predict import predict_image
 from uuid import uuid4
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,20 +16,22 @@ from datetime import datetime
 from routes import auth
 from routes import panels
 from routes import checks
+from routes import reports
+from routes import dashboard
 from database.database import async_session
 
-
-
-
+import models
 
 
 app = FastAPI()
 
 app.include_router(auth.router)
 app.include_router(panels.router)
-
 app.include_router(checks.router)
+app.include_router(reports.router)
+app.include_router(dashboard.router)
 
+print("Reports router has", len(reports.router.routes), "routes")
 
 app.add_middleware(
     CORSMiddleware,
@@ -56,8 +61,10 @@ async def get_session():
 @app.post("/predict/")
 async def predict(
         file: UploadFile = File(...),
+        model: ModelEnum = Form(...),
+        panel_id: Optional[int] = Form(None),
         session: AsyncSession = Depends(get_session)
-                  ):
+):
     file_ext = os.path.splitext(file.filename)[-1]
     temp_filename = f"{uuid4()}{file_ext}"
     temp_path = os.path.join(UPLOAD_DIR, temp_filename)
@@ -66,7 +73,7 @@ async def predict(
         shutil.copyfileobj(file.file, buffer)
 
     try:
-        prediction = predict_image(temp_path)
+        prediction = predict_image(temp_path, model.value)
 
         # Mutăm imaginea în folderul permanent cu nume sugestiv
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -75,9 +82,8 @@ async def predict(
         shutil.move(temp_path, final_path)
 
         check = PanelCheck(
-            #panel_id: int = Form(...)
-
-            panel_id=1,
+            panel_id=panel_id,
+            model=model,
             status=prediction,
             image_path=final_path,
             timestamp=datetime.utcnow()

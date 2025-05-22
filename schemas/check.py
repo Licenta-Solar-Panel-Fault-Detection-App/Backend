@@ -1,16 +1,20 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from models.models_enum import ModelEnum
+
 
 class CheckCreate(BaseModel):
-    panel_id: int
+    panel_id: Optional[int] = None
     status: str
-    image_path: Optional[str] = None  # path-ul imaginii
-    timestamp: Optional[datetime] = None  # poate fi auto-generat dacă e None
+    model: ModelEnum
+    image_path: Optional[str] = None
+    timestamp: Optional[datetime] = None
 
 class CheckResponse(BaseModel):
     id: int
-    panel_id: int
+    panel_id: Optional[int] = None
+    model: ModelEnum
     status: str
     image_path: Optional[str]
     timestamp: datetime
