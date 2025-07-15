@@ -17,15 +17,9 @@ async def get_session():
     async with async_session() as session:
         yield session
 
-
-from sqlalchemy import text
-
-from sqlalchemy import text
-
 @router.get("/stats/{user_id}")
 async def get_dashboard_stats(user_id: int, session: AsyncSession = Depends(get_session)):
     try:
-        # Query per model
         model_query = text("""
             SELECT 
                 panelcheck.model, 
@@ -40,7 +34,6 @@ async def get_dashboard_stats(user_id: int, session: AsyncSession = Depends(get_
         result = await session.execute(model_query, {"user_id": user_id})
         model_data = result.all()
 
-        # Query total
         total_query = text("""
             SELECT 
                 COUNT(panelcheck.id), 
@@ -79,7 +72,7 @@ async def get_predictions_filtered(
     session: AsyncSession = Depends(get_session)
 ):
     try:
-        # Bază query SQL
+
         base_sql = """
             SELECT 
                 panelcheck.id, 
@@ -96,7 +89,7 @@ async def get_predictions_filtered(
             WHERE (solarpanel.user_id = :user_id OR panelcheck.panel_id IS NULL)
         """
 
-        # Adăugăm dynamic WHERE filters
+
         conditions = []
         params = {"user_id": user_id}
 
@@ -107,7 +100,7 @@ async def get_predictions_filtered(
             conditions.append("panelcheck.model = :model")
             params["model"] = model
 
-        # Concatenează condițiile suplimentare
+
         if conditions:
             base_sql += " AND " + " AND ".join(conditions)
 

@@ -35,7 +35,7 @@ print("Reports router has", len(reports.router.routes), "routes")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # sau ["http://localhost:4200"]
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -75,7 +75,6 @@ async def predict(
     try:
         prediction = predict_image(temp_path, model.value)
 
-        # Mutăm imaginea în folderul permanent cu nume sugestiv
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         final_filename = f"check_{timestamp}{file_ext}"
         final_path = os.path.join(CHECK_DIR, final_filename)

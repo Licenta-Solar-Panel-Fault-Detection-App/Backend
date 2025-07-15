@@ -9,7 +9,6 @@ from schemas.user import UserCreate, UserLogin, UserUpdateUsername, UserUpdateEm
 router = APIRouter(prefix="/auth", tags=["auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Dependency pentru sesiune DB
 async def get_session():
     async with async_session() as session:
         yield session
